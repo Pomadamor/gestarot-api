@@ -1,0 +1,116 @@
+{
+	"info": {
+		"_postman_id": "79871a3b-5c85-4072-b09e-7176b986c537",
+		"name": "user-api",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create a user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/user?username=kernel&password=plop&email=kernel43@coucou.fr&phone=1234",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user"
+					],
+					"query": [
+						{
+							"key": "username",
+							"value": "kernel"
+						},
+						{
+							"key": "password",
+							"value": "plop"
+						},
+						{
+							"key": "email",
+							"value": "kernel43@coucou.fr"
+						},
+						{
+							"key": "phone",
+							"value": "1234"
+						}
+					]
+				},
+				"description": "Create a user with a username and a password"
+			},
+			"response": []
+		},
+		{
+			"name": "Update User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/user/kernel@coucou.fr",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"kernel@coucou.fr"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all users",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/user",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:8000/api/user/login?email=kernel@coucou.fr&password=plop",
+					"host": [
+						"localhost"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"user",
+						"login"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "kernel@coucou.fr"
+						},
+						{
+							"key": "password",
+							"value": "plop"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
