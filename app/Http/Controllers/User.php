@@ -13,8 +13,40 @@ class User extends Controller
     /**
      * Returns a user.
      */
-    public function get( $id ) {
-        // return ['username' => 'hello'];
+    public function get($id, Request $request) {
+
+        $user = \App\User::where('id', $id)->first();
+        if (!$user) {
+            return [
+                "status" => "error", 
+                "error" => "User $id not found"
+            ];
+        }
+        // Check if the logged in user is the same as the one we want to modify
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+        
+        // Check if token belongs to the user with the specified id
+        if (count( $api_token ) == 0 || $api_token[0]->user_id != $id ) {
+            Log::debug('user id and token user id same');
+            return response()
+                ->json([
+                    'status' => 'error',
+                    'error' => 'You are not allowed to get another user'
+                ]);
+        }
+
+        return [
+            'status' => "ok",
+            "user" => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'username' => $user->username
+            ]
+        ];
+
     }
 
     /**
@@ -63,7 +95,16 @@ class User extends Controller
             return response()
                 ->json( ["status" => "error", 'error' => '"email" and "phone" fields are empty'], 500);
         };
-  
+        if(!preg_match('/^[a-z0-9]+([_|\.|-]{1}[a-z0-9]+)*@[a-z0-9]+([_|\.|-]{1}[a-z0-9]+)*[\.]{1}[a-z]{2,6}$/', $email)){
+            return response()
+                ->json( ["status" => "error", 'error' => '"email" is invalid'], 500);
+        };
+
+        if(!preg_match('/^(01|02|03|04|05|06|08)[0-9]{8}$/', $phone)){
+            return response()
+                ->json( ["status" => "error", 'error' => '"phone" is invalid'], 500);
+        };
+
         // Check for user existence in database
         $user = \App\User::where('email', $email)->orWhere('phone', $phone)->first();
         if ($user) {
@@ -83,19 +124,18 @@ class User extends Controller
         $user_id = null;
         try {
             $user_id = DB::table('users')->insertGetId(
-                    $user_to_insert
-                );
-            } catch (\Illuminate\Database\QuerusernameusernameusernameyException $e) {
-                return response()
-                    ->json(
-                    [
-                        'status' => 'error',
-                        'error' =>'Unable to create the user',
-                    ]
-                );
+                $user_to_insert
+            );
+        } catch (\Illuminate\Database\QuerusernameusernameusernameyException $e) {
+            return response()
+                ->json(
+                [
+                    'status' => 'error',
+                    'error' =>'Unable to create the user',
+                ]
+            );
         }
 
-        $user_to_insert['id'] = $user_id;
         return response()
             ->json(
                 ['status' => 'ok'],
@@ -203,7 +243,13 @@ class User extends Controller
 
 
         // Check if the logged in user is the same as the one we want to modify
-        if ($request->header('api_token') !== $user->api_token) {
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+        
+        // Check if token belongs to the user with the specified id
+        if (count( $api_token ) == 0 || $api_token[0]->user_id != $id ) {
+            Log::debug('user id and token user id same');
             return response()
                 ->json([
                     'status' => 'error',
@@ -214,9 +260,9 @@ class User extends Controller
         // TODO: check if logged in user is the same as $email
         if ($user) {
             $user->delete();
-            return ["status" => "ok", 'message' => "User $email deleted"];
+            return ["status" => "ok", 'message' => "User $id deleted"];
         } else {
-            return ["status" => "error", 'error' => "Cannot delete user $email"];
+            return ["status" => "error", 'error' => "Cannot delete user $id"];
         }
     }
 }

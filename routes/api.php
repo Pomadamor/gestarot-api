@@ -27,5 +27,6 @@ Route::post('/user/{id}', 'User@updateUser')
 Route::delete('/user/{id}', 'User@deleteUser')
     ->middleware(ApiAuthenticate::class);
 
-// Route::middleware('auth:api')->get( '/user/{id}', 'User@get' )
-//     ->where('id', '[0-9]+');
+Route::get('/user/{id}', 'User@get' )
+    ->where('id', '[0-9]+')
+    ->middleware(ApiAuthenticate::class);

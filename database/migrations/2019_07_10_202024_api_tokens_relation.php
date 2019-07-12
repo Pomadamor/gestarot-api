@@ -19,7 +19,8 @@ class ApiTokensRelation extends Migration
             $table->string('value', 80);
             $table->dateTime('expires');
 
-            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('user_id')->references('id')->on('users')
+                ->onDelete('cascade');
         });
 
         // Remove column api_token from user table
