@@ -30,3 +30,12 @@ Route::delete('/user/{id}', 'User@deleteUser')
 Route::get('/user/{id}', 'User@get' )
     ->where('id', '[0-9]+')
     ->middleware(ApiAuthenticate::class);
+
+Route::get('/user/{id}/friends', 'User@getFriends')
+    ->where('id', '[0-9]+')
+    ->middleware(ApiAuthenticate::class);
+
+Route::post('/user/{id}/friends', 'User@addFriend')
+    ->where('id', '[0-9]+')
+    ->where('friend_id', '[0-9]+')
+    ->middleware(ApiAuthenticate::class);

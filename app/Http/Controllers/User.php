@@ -249,7 +249,7 @@ class User extends Controller
         
         // Check if token belongs to the user with the specified id
         if (count( $api_token ) == 0 || $api_token[0]->user_id != $id ) {
-            Log::debug('user id and token user id same');
+            Log::debug('user id and token user id differs');
             return response()
                 ->json([
                     'status' => 'error',
@@ -264,5 +264,109 @@ class User extends Controller
         } else {
             return ["status" => "error", 'error' => "Cannot delete user $id"];
         }
+    }
+
+    public function getFriends( $id, Request $request ) {
+
+        // Check if the logged in user is the same as the one we want to modify
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+
+        // Check if token belongs to the user with the specified id
+        if (count( $api_token ) == 0 || $api_token[0]->user_id != $id ) {
+            Log::debug('user id and token user id differs');
+            return response()
+                ->json([
+                    'status' => 'error',
+                    'error' => 'You are not allowed to view friends of another user'
+                ]);
+        }
+
+        $friends = \DB::table('friends')
+            ->where('user_id_1', $id)
+            ->join('users', 'friends.user_id_2', '=', 'users.id');
+
+        $all_friends = \DB::table('friends')
+            ->where('user_id_2', $id)
+            ->join('users', 'friends.user_id_1', '=', 'users.id')
+            ->union( $friends )
+            ->get();
+
+        $result_friends = [];
+        foreach ($all_friends as $friend) {
+            // Get the id of the user, not from the friends
+            // Laravel automatically rename duplicates fields
+            $user_id_field = "id:1";
+            $result_friends[] = [
+                'id' => $friend->$user_id_field,
+                'username' => $friend->username,
+                'email' => $friend->email,
+                'phone' => $friend->phone
+            ];
+        }
+
+
+        return ["status" => "ok", "friends" => $result_friends];
+    }
+
+    public function addFriend( $id, Request $request ) {
+        
+        // Check if the logged in user is the same as the one we want to modify
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+
+        // Check if token belongs to the user with the specified id
+        if (count( $api_token ) == 0 || $api_token[0]->user_id != $id ) {
+            Log::debug('user id and token user id differs');
+            return response()
+                ->json([
+                    'status' => 'error',
+                    'error' => 'You are not allowed to add friends to another user'
+                ]);
+        }
+
+        $user_request = \DB::table('users');
+        
+        if ($request->input('email') ) {
+            $user_request->where('email', $request->input('email'));
+        } elseif( $request->input('phone') ) {
+            $user_request->where('phone', $request->input('phone'));
+        } else {
+            return ["status" => "error", 'error' => 'Please specify an email or phone'];
+        }
+        
+        $user = $user_request->first();
+        
+        if ($user) {
+            // Search if users are already friends
+            
+            $friends = \DB::table('friends')
+                ->where([
+                    ['user_id_1', '=', $user->id],
+                    ['user_id_2', '=', $id],
+                ])
+                ->orWhere([
+                    ['user_id_1', '=', $id],
+                    ['user_id_2', '=', $user->id],
+                ])->get();
+
+            if (count($friends) == 0) {
+                // If not, insert one relation
+                try {
+                    $friend_id = \DB::table('friends')->insert([
+                        "user_id_1" => $id,
+                        "user_id_2" => $user->id,
+                    ]);
+                } catch (\Illuminate\Database\QuerusernameusernameusernameyException $e) {
+                    return ["status" => "error", "error" => "Unable to add a friend in database (".$e->getMessage().")"];
+                }
+            }
+        } else {
+            return ["status" => "error", "error" => "Friend not found with provided email or phone"];
+        }
+
+        return ["status" => "ok", "message" => "Friend added"];
     }
 }
