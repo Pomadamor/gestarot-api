@@ -16,7 +16,8 @@ use App\Http\Middleware\ApiAuthenticate;
 
 Route::post('/user/login', 'User@login');
 
-Route::post( '/user', 'User@create' );
+Route::post( '/logged_user', 'User@updateUser' )
+    ->middleware(ApiAuthenticate::class);
 
 Route::post('/user/{id}', 'User@updateUser')
     ->middleware(ApiAuthenticate::class);
@@ -24,7 +25,11 @@ Route::post('/user/{id}', 'User@updateUser')
 Route::delete('/user/{id}', 'User@deleteUser')
     ->middleware(ApiAuthenticate::class);
 
-Route::get('/user/{id?}', 'User@get' )
+Route::get('/logged_user', 'User@get' )
+    ->where('id', '[0-9]+')
+    ->middleware(ApiAuthenticate::class);
+
+Route::get('/user/{id}', 'User@get' )
     ->where('id', '[0-9]+')
     ->middleware(ApiAuthenticate::class);
 

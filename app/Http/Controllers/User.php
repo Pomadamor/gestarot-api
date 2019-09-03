@@ -155,8 +155,23 @@ class User extends Controller
             );
     }
 
-    public function updateUser( $id, Request $request ) {
+    public function updateUser( $id = NULL, Request $request ) {
         // TODO: check if logged in user is the same as $email
+
+        // Load the api_token from database
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+
+        // If no id is specified in the route, guess it from the api_token
+        // (Get the logged in user)
+        if (is_null($id)) {
+            Log::debug('Loading user from token');
+            // Get the id from the token
+            if (count( $api_token ) >= 0 ) {
+                $id = $api_token[0]->user_id;
+            }
+        }
 
         $user = \App\User::where('id', $id)->first();
         if (!$user) {
@@ -165,12 +180,8 @@ class User extends Controller
                 "error" => "User $id not found"
             ];
         }
-
-        // Check if the logged in user is the same as the one we want to modify
-        $api_token = \DB::table('api_tokens')
-            ->where('value', $request->header('api_token'))
-            ->get();
         
+        // Check if the logged in user is the same as the one we want to modify
         // Check if token belongs to the user with the specified id
         if (count( $api_token ) == 0 || $api_token[0]->user_id != $id ) {
             Log::debug('user id and token user id same');
