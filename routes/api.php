@@ -42,5 +42,7 @@ Route::get('/logged_user/friends', 'User@getFriends')
 
 Route::post('/user/{id}/friends', 'User@addFriend')
     ->where('id', '[0-9]+')
-    ->where('friend_id', '[0-9]+')
+    ->middleware(ApiAuthenticate::class);
+
+Route::post('/logged_user/friends', 'User@addFriend')
     ->middleware(ApiAuthenticate::class);

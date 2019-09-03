@@ -344,12 +344,22 @@ class User extends Controller
         return ["status" => "ok", "friends" => $result_friends];
     }
 
-    public function addFriend( $id, Request $request ) {
+    public function addFriend( $id = NULL, Request $request ) {
         
         // Check if the logged in user is the same as the one we want to modify
         $api_token = \DB::table('api_tokens')
             ->where('value', $request->header('api_token'))
             ->get();
+
+        // If no id is specified in the route, guess it from the api_token
+        // (Get the logged in user)
+        if (is_null($id)) {
+            Log::debug('Loading user from token');
+            // Get the id from the token
+            if (count( $api_token ) >= 0 ) {
+                $id = $api_token[0]->user_id;
+            }
+        }
 
         // Check if token belongs to the user with the specified id
         if (count( $api_token ) == 0 || $api_token[0]->user_id != $id ) {
