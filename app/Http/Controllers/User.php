@@ -13,7 +13,23 @@ class User extends Controller
     /**
      * Returns a user.
      */
-    public function get($id, Request $request) {
+    public function get($id = NULL, Request $request) {
+
+        // Check if the logged in user is the same as the one we want to modify
+        // Load the api_token from the database
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+
+        // If no id is specified in the route, guess it from the api_token
+        // (Get the logged in user)
+        if (is_null($id)) {
+            Log::debug('Loading user from token');
+            // Get the id from the token
+            if (count( $api_token ) >= 0 ) {
+                $id = $api_token[0]->user_id;
+            }
+        }
 
         $user = \App\User::where('id', $id)->first();
         if (!$user) {
@@ -22,10 +38,6 @@ class User extends Controller
                 "error" => "User $id not found"
             ];
         }
-        // Check if the logged in user is the same as the one we want to modify
-        $api_token = \DB::table('api_tokens')
-            ->where('value', $request->header('api_token'))
-            ->get();
         
         // Check if token belongs to the user with the specified id
         if (count( $api_token ) == 0 || $api_token[0]->user_id != $id ) {
