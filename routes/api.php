@@ -16,6 +16,8 @@ use App\Http\Middleware\ApiAuthenticate;
 
 Route::post('/user/login', 'User@login');
 
+Route::post( '/user', 'User@create' );
+
 Route::post( '/logged_user', 'User@updateUser' )
     ->middleware(ApiAuthenticate::class);
 
