@@ -55,7 +55,9 @@ class User extends Controller
                 'id' => $user->id,
                 'email' => $user->email,
                 'phone' => $user->phone,
-                'username' => $user->username
+                'username' => $user->username,
+                'avatar' => $user->avatar,
+                'color' => $user->color
             ]
         ];
 
@@ -94,6 +96,8 @@ class User extends Controller
         $password = $request->input('password');
         $email    = $request->input('email');
         $phone    = $request->input('phone');
+        $avatar   = $request->input('avatar');
+        $color    = $request->input('color');
 
         if (empty( $username ) ) {
             return response()
@@ -131,6 +135,8 @@ class User extends Controller
             'password' => $password,
             'email' => $email,
             'phone' => $phone,
+            'avatar' => $avatar,
+            'color' => $color
         ];
         
         $user_id = null;
@@ -210,6 +216,16 @@ class User extends Controller
         if ($request->input('email') ) {
             Log::debug("Updating ".$request->input('email'));
             $user->email = $request->input('email');
+        }
+
+        if ($request->input('avatar') ) {
+            Log::debug("Updating ".$request->input('avatar'));
+            $user->avatar = $request->input('avatar');
+        }
+
+        if ($request->input('color') ) {
+            Log::debug("Updating ".$request->input('color'));
+            $user->color = $request->input('color');
         }
 
         $user->save();
