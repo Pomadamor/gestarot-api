@@ -48,3 +48,5 @@ Route::post('/user/{id}/friends', 'User@addFriend')
 
 Route::post('/logged_user/friends', 'User@addFriend')
     ->middleware(ApiAuthenticate::class);
+
+Route::get('/admin/user', 'User@get_all');
