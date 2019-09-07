@@ -57,6 +57,7 @@ class User extends Controller
                 'phone' => $user->phone,
                 'username' => $user->username,
                 'avatar' => $user->avatar,
+                'image' => $user->image,
                 'color' => $user->color
             ]
         ];
@@ -97,6 +98,7 @@ class User extends Controller
         $email    = $request->input('email');
         $phone    = $request->input('phone');
         $avatar   = $request->input('avatar');
+        $image    = $request->input('image');
         $color    = $request->input('color');
 
         if (empty( $username ) ) {
@@ -136,6 +138,7 @@ class User extends Controller
             'email' => $email,
             'phone' => $phone,
             'avatar' => $avatar,
+            'image' => $image,
             'color' => $color
         ];
         
@@ -221,6 +224,11 @@ class User extends Controller
         if ($request->input('avatar') ) {
             Log::debug("Updating ".$request->input('avatar'));
             $user->avatar = $request->input('avatar');
+        }
+
+        if ($request->input('image') ) {
+            Log::debug("Updating ".$request->input('image'));
+            $user->image = $request->input('image');
         }
 
         if ($request->input('color') ) {
@@ -389,12 +397,15 @@ class User extends Controller
 
         $user_request = \DB::table('users');
         
+        // Check username + email or username + phone
+        $user_request->where('username', $request->input('username'));
+
         if ($request->input('email') ) {
             $user_request->where('email', $request->input('email'));
         } elseif( $request->input('phone') ) {
             $user_request->where('phone', $request->input('phone'));
         } else {
-            return ["status" => "error", 'error' => 'Please specify an email or phone'];
+            return ["status" => "error", 'error' => 'Please specify a username, and an email or phone'];
         }
         
         $user = $user_request->first();
@@ -424,7 +435,7 @@ class User extends Controller
                 }
             }
         } else {
-            return ["status" => "error", "error" => "Friend not found with provided email or phone"];
+            return ["status" => "error", "error" => "Friend not found with provided username and email or phone"];
         }
 
         return ["status" => "ok", "message" => "Friend added"];

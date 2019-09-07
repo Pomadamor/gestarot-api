@@ -16,6 +16,8 @@ class UserAvatarColor extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('avatar', 260)
                 ->nullable();
+            $table->string('image', 260)
+                ->nullable();
             $table->string('color', 100)
                 ->nullable();
         });
@@ -29,7 +31,7 @@ class UserAvatarColor extends Migration
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['color', 'avatar']);
+            $table->dropColumn(['color', 'image', 'avatar']);
         });
     }
 }
