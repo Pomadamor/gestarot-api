@@ -275,6 +275,7 @@ class User extends Controller
             $result = [
                 "id" => $user->id,
                 "email" => $user->email,
+                "username" => $user->username,
                 "phone" => $user->phone,
                 "api_token" => $token_value
             ];
