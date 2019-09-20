@@ -52,5 +52,8 @@ Route::post('/logged_user/friends', 'User@addFriend')
 Route::post('/game', 'Game@createGame')
     ->middleware(ApiAuthenticate::class);
 
+Route::get('/game/{id}', 'Game@get')
+    ->where('id', '[0-9]+');
+
 Route::get('/admin/games', 'Game@get_all');
 Route::get('/admin/user', 'User@get_all');

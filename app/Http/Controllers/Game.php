@@ -89,7 +89,39 @@ class Game extends Controller
         Log::debug('Playing users: '. print_r( $user_playing, 1 ));
     }
 
-        /**
+    public function get($id) {
+        $db_game = \DB::table('games')->where('id', '=', $id)->first();
+
+        $users = [];
+        $creator_id = NULL;
+
+        $db_games_users = \DB::table('games_users')
+            ->where('game_id', '=', $id)
+            ->get();
+
+        foreach ($db_games_users as $item) {
+            if ($item->type == 'guest') {
+                array_push( $users, ['type' => 'guest', 'username' => $item->username] );
+            } else {
+                $user = \App\User::where('id', $item->user_id)->first();
+                array_push( $users, [
+                    'type' => 'user', 'username' => $item->username, 'user_id' => intval($item->user_id),
+                    'avatar' => $user->avatar, 'color' => $user->color
+                ]);
+            }
+            if ($item->is_owner) {
+                $creator_id = $item->user_id;
+            }
+        }
+        return [
+            'game_id' => intval($id),
+            'users' => $users,
+            'creator_id' => intval($creator_id)
+        ];
+
+    }
+
+    /**
      * Return all users stored in database.
      */
     public function get_all()
@@ -103,14 +135,26 @@ class Game extends Controller
                 ->where('game_id', '=', $game->id)
                 ->get();
 
+            $users = [];
+            $creator_id = NULL;
+            foreach ($db_games_users as $item) {
+                if ($item->type == 'guest') {
+                    array_push( $users, ['type' => 'guest', 'username' => $item->username] );
+                } else {
+                    $user = \App\User::where('id', $item->user_id)->first();
+                    array_push( $users, [
+                        'type' => 'user', 'username' => $item->username, 'user_id' => intval($item->user_id),
+                        'avatar' => $user->avatar, 'color' => $user->color
+                    ]);
+                }
+                if ($item->is_owner) {
+                    $creator_id = $item->user_id;
+                }
+            }
             $games[] = [
-                'id' => $game->id,
-                'users' => $db_games_users->map(
-                    function ($item) {return ($item->type == 'guest') 
-                        ? ['type' => 'guest', 'username' => $item->username]
-                        : ['type' => 'user', 'user_id' => $item->user_id];
-                    }
-                )
+                'game_id' => intval($game->id),
+                'users' => $users,
+                'creator_id' => intval($creator_id)
             ];
         }
         return [
