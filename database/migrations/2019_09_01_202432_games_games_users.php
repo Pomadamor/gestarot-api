@@ -34,6 +34,9 @@ class GamesGamesUsers extends Migration
             $table->enum('type', ['user', 'guest'])
                 ->default('user');
 
+            $table->boolean('is_owner')
+                ->default(FALSE);
+
             $table->foreign('user_id')->references('id')->on('users')
                 ->onDelete('cascade');
 

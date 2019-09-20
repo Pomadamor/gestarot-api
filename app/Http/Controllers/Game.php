@@ -8,6 +8,19 @@ use Illuminate\Http\Request;
 class Game extends Controller
 {
     public function createGame(Request $request) {
+
+        // Load the api_token from the database
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+
+        // (Get the logged in user)
+        // Get the id from the token
+        $id = NULL;
+        if (count( $api_token ) >= 0 ) {
+            $id = $api_token[0]->user_id;
+        }
+
         // Read users participating to the game
         $request_users = $request->input('users');
         if (is_null($request_users) || !is_array($request_users)) {
@@ -38,7 +51,11 @@ class Game extends Controller
             if (count($db_users) > 0) {
                 Log::debug('Found at least one user corresponding to the email or phone');
                 // Log::debug(print_r($db_users[0], 1));
-                array_push( $game['users'], ['user_id' => $db_users[0]->id] );
+                $is_owner = FALSE;
+                if ($id === $db_users[0]->id) {
+                    $is_owner = TRUE;
+                }
+                array_push( $game['users'], ['user_id' => $db_users[0]->id, "is_owner" => $is_owner] );
             } else {
                 // Try to add a guest user based on his username
                 if (isset( $request_user['username'] ) ) {
