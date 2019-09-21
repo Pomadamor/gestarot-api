@@ -152,7 +152,12 @@ class Game extends Controller
                         'roi' => $req_turn['roi'],
                         'victoire' => boolval($req_turn['victoire']),
                         'score' => intval($req_turn['score']),
-                        'autre_score' => intval($req_turn['autre_score'])
+                        'autre_score' => intval($req_turn['autre_score']),
+                        'scoreJ1' => (is_null($req_turn['scoreJ1'])) ? NULL : intval($req_turn['scoreJ1']),
+                        'scoreJ2' => (is_null($req_turn['scoreJ2'])) ? NULL : intval($req_turn['scoreJ2']),
+                        'scoreJ3' => (is_null($req_turn['scoreJ3'])) ? NULL : intval($req_turn['scoreJ3']),
+                        'scoreJ4' => (is_null($req_turn['scoreJ4'])) ? NULL : intval($req_turn['scoreJ4']),
+                        'scoreJ5' => (is_null($req_turn['scoreJ5'])) ? NULL : intval($req_turn['scoreJ5']),
                     ]
                 );
             }
