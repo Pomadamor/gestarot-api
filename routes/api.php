@@ -49,7 +49,8 @@ Route::post('/user/{id}/friends', 'User@addFriend')
 Route::post('/logged_user/friends', 'User@addFriend')
     ->middleware(ApiAuthenticate::class);
 
-Route::post('/game', 'Game@createGame')
+# id is optional: if it exists, update the game in place of creating it
+Route::post('/game/{id?}', 'Game@createOrUpdate')
     ->middleware(ApiAuthenticate::class);
 
 Route::get('/game/{id}', 'Game@get')
