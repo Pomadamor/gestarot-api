@@ -21,6 +21,8 @@ class Game extends Controller
             $user_id = $api_token[0]->user_id;
         }
 
+        $db_game_players = [];
+
         if (is_null($id)) {
             // Read users participating to the game
             $request_users = $request->input('users');
@@ -92,8 +94,24 @@ class Game extends Controller
             //     'game_id' => $db_game_id
             // ];
         } else {
+            // Game already exists
             $db_game_id = $id;
-    }
+
+            // Check if the logged in user is the owner of the game
+            $db_game_owner = \DB::table('games_users')
+                ->where('game_id', '=', intval( $db_game_id ))
+                ->where('user_id', '=', $user_id)
+                ->where('is_owner', '=', TRUE)
+                ->first();
+
+            if (is_null( $db_game_owner ) ) {
+                return [
+                    'status' => 'error',
+                    'error' => 'You are not the creator of this game'
+                ];
+            }
+        }
+
         $db_game = \DB::table('games')
             ->where('id', '=', intval($db_game_id))
             ->first();
@@ -104,6 +122,7 @@ class Game extends Controller
             ];
         }
 
+        // Load the players from database
         $db_game_players = \DB::table('games_users')
             ->where('game_id', '=', intval($db_game_id))
             ->get();
