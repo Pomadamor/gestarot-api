@@ -362,7 +362,7 @@ class User extends Controller
             $user_id_field = 'id';
             $result_friend = [
                 'id' => $friend->$user_id_field,
-                'pseudo' => $friend->username
+                'username' => $friend->username
                 // 'email' => $friend->email,
                 // 'phone' => $friend->phone
             ];
