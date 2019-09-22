@@ -162,11 +162,10 @@ class Game extends Controller
                 Log::debug('Insert turn '.$i);
                 \DB::table('games_turns')->insert(
                     [
+                        'id' => $req_turn['id'],
                         'game_id' => $db_game_id,
-                        'preneur' => $req_turn['preneur']-1,
-                        'partenaire' => (is_null($req_turn['partenaire']))
-                            ? NULL
-                            : $req_turn['partenaire']-1,
+                        'preneur' => $req_turn['preneur'],
+                        'partenaire' => $req_turn['partenaire'],
                         'type' => $req_turn['type'],
                         'roi' => $req_turn['roi'],
                         'victoire' => boolval($req_turn['victoire']),

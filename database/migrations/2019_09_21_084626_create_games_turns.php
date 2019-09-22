@@ -14,14 +14,14 @@ class CreateGamesTurns extends Migration
     public function up()
     {
         Schema::create('games_turns', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->unsignedInteger('id');
             $table->unsignedBigInteger('game_id');
             $table->foreign('game_id')->references('id')->on('games')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             
-            $table->unsignedBigInteger('preneur');
-            $table->unsignedBigInteger('partenaire')
+            $table->string('preneur');
+            $table->string('partenaire')
                 ->nullable();
             
             $table->enum('roi', ['trefle', 'carreau', 'coeur', 'pique']);
@@ -30,6 +30,7 @@ class CreateGamesTurns extends Migration
             $table->integer('score')->default(0);
             $table->integer('autre_score')->default(0);
 
+            $table->integer('nbJoueur')->default(0);
             $table->integer('scoreJ1')->default(0);
             $table->integer('scoreJ2')->default(0);
             $table->integer('scoreJ3')->default(0);
