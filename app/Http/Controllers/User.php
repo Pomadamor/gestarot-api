@@ -360,12 +360,23 @@ class User extends Controller
             // Laravel automatically rename duplicates fields
             // $user_id_field = "id:1";
             $user_id_field = 'id';
-            $result_friends[] = [
+            $result_friend = [
                 'id' => $friend->$user_id_field,
-                'username' => $friend->username,
-                'email' => $friend->email,
-                'phone' => $friend->phone
+                'pseudo' => $friend->username
+                // 'email' => $friend->email,
+                // 'phone' => $friend->phone
             ];
+            $friendship_validated = \DB::table('friends')
+                ->where('user_id_2', '=', $id)
+                ->where('user_id_1', '=', $friend->$user_id_field)
+                ->first();
+
+            if ($friendship_validated) {
+                $result_friend['color'] = $friend->color;
+                $result_friend['avatar'] = $friend->avatar;
+                $result_friend['image'] = $friend->image;
+            }
+            $result_friends[] = $result_friend;
         }
 
 
@@ -418,11 +429,11 @@ class User extends Controller
             // Search if users are already friends
             
             $friends = \DB::table('friends')
+                // ->where([
+                //     ['user_id_1', '=', $user->id],
+                //     ['user_id_2', '=', $id],
+                // ])
                 ->where([
-                    ['user_id_1', '=', $user->id],
-                    ['user_id_2', '=', $id],
-                ])
-                ->orWhere([
                     ['user_id_1', '=', $id],
                     ['user_id_2', '=', $user->id],
                 ])->get();
