@@ -61,10 +61,16 @@ class Game extends Controller
                     } else {
                         // Check if the user is a friend
                         $db_user_friend = \DB::table('friends')
-                            ->where('user_id_1', '=', $user_id)
-                            ->where('user_id_2', '=', $user_id)
-                            ->first();
-                        if (is_null($db_user_friend) ) {
+                            ->where(function ($query) use ($user_id, $db_users) {
+                                $query->where('user_id_1', '=', $user_id)
+                                    ->where('user_id_2', '=', $db_users[0]->id);
+                            })
+                            ->orWhere(function ($query) use ($user_id, $db_users) {
+                                $query->where('user_id_1', '=', $db_users[0]->id)
+                                    ->where('user_id_2', '=', $user_id);
+                            })
+                            ->get();
+                        if (count($db_user_friend) != 2 ) {
                             return [
                                 'status' => 'error',
                                 'error' => 'User '.$user_id.' is not your friend'
