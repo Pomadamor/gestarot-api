@@ -344,19 +344,22 @@ class User extends Controller
 
         $friends = \DB::table('friends')
             ->where('user_id_1', $id)
-            ->join('users', 'friends.user_id_2', '=', 'users.id');
-
-        $all_friends = \DB::table('friends')
-            ->where('user_id_2', $id)
-            ->join('users', 'friends.user_id_1', '=', 'users.id')
-            ->union( $friends )
+            ->join('users', 'friends.user_id_2', '=', 'users.id')
             ->get();
+
+        // $all_friends = \DB::table('friends')
+        //     ->where('user_id_2', $id)
+        //     ->join('users', 'friends.user_id_1', '=', 'users.id')
+        //     ->union( $friends )
+        //     ->get();
+        $all_friends = $friends;
 
         $result_friends = [];
         foreach ($all_friends as $friend) {
             // Get the id of the user, not from the friends
             // Laravel automatically rename duplicates fields
-            $user_id_field = "id:1";
+            // $user_id_field = "id:1";
+            $user_id_field = 'id';
             $result_friends[] = [
                 'id' => $friend->$user_id_field,
                 'username' => $friend->username,
