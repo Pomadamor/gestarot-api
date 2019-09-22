@@ -56,5 +56,9 @@ Route::post('/game/{id?}', 'Game@createOrUpdate')
 Route::get('/game/{id}', 'Game@get')
     ->where('id', '[0-9]+');
 
+Route::get('/history/party', 'Game@getAllLoggedUser')
+    ->middleware(ApiAuthenticate::class);
+
+
 Route::get('/admin/games', 'Game@get_all');
 Route::get('/admin/user', 'User@get_all');

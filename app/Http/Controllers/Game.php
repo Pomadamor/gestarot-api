@@ -258,4 +258,57 @@ class Game extends Controller
         ];
     }
 
+    public function getAllLoggedUser(Request $request) {
+        // Load the logged in user
+        // Load the games he's participating
+        // Load the api_token from the database
+        $api_token = \DB::table('api_tokens')
+        ->where('value', $request->header('api_token'))
+        ->get();
+
+        // (Get the logged in user)
+        // Get the id from the token
+        $user_id = NULL;
+        if (count( $api_token ) >= 0 ) {
+            $user_id = $api_token[0]->user_id;
+        }
+
+        $db_game_playing = \DB::table('games_users')
+            ->where('user_id', '=', $user_id)
+            ->get();
+
+        $db_game_ids = array_map(
+            function ($item) { return $item->game_id; },
+            $db_game_playing->all()
+        );
+
+        $db_games = \DB::table('games')
+            ->whereIn('id', array_values( $db_game_ids ))
+            ->get();
+
+        // dd( $db_games );
+
+        $return = [
+            'status' => 'ok',
+            'games' => []
+        ];
+        foreach ($db_games as $db_game ) {
+            // Load the players from database
+            $db_game_players = \DB::table('games_users')
+                ->where('game_id', '=', intval($db_game->id))
+                ->get();
+            // dd( $db_game_players );
+
+            $db_game_turns = \DB::table('games_turns')
+                ->where('game_id', '=', intval( $db_game->id ))
+                ->get();
+
+            array_push( $return['games'], [
+                'game_id' => $db_game->id,
+                'users' => $db_game_players->all(),
+                'turns' => $db_game_turns->all()
+            ]);
+        }
+        return $return;
+    }
 }
