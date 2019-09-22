@@ -26,7 +26,7 @@ class CreateGamesTurns extends Migration
             
             $table->enum('roi', ['trefle', 'carreau', 'coeur', 'pique'])
                 ->nullable();
-            $table->enum('type', ['petite', 'garde', 'garde sans', 'garde contre']);
+            $table->string('type');
 
             $table->integer('score')->default(0);
             $table->integer('autre_score')->default(0);
