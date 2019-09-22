@@ -144,20 +144,20 @@ class Game extends Controller
                 \DB::table('games_turns')->insert(
                     [
                         'game_id' => $db_game_id,
-                        'preneur' => $db_game_players[$req_turn['preneur']-1]->user_id,
+                        'preneur' => $req_turn['preneur']-1,
                         'partenaire' => (is_null($req_turn['partenaire']))
                             ? NULL
-                            : $db_game_players[$req_turn['partenaire']-1]->user_id,
+                            : $req_turn['partenaire']-1,
                         'type' => $req_turn['type'],
                         'roi' => $req_turn['roi'],
                         'victoire' => boolval($req_turn['victoire']),
                         'score' => intval($req_turn['score']),
                         'autre_score' => intval($req_turn['autre_score']),
-                        'scoreJ1' => (is_null($req_turn['scoreJ1'])) ? NULL : intval($req_turn['scoreJ1']),
-                        'scoreJ2' => (is_null($req_turn['scoreJ2'])) ? NULL : intval($req_turn['scoreJ2']),
-                        'scoreJ3' => (is_null($req_turn['scoreJ3'])) ? NULL : intval($req_turn['scoreJ3']),
-                        'scoreJ4' => (is_null($req_turn['scoreJ4'])) ? NULL : intval($req_turn['scoreJ4']),
-                        'scoreJ5' => (is_null($req_turn['scoreJ5'])) ? NULL : intval($req_turn['scoreJ5']),
+                        'scoreJ1' => (is_null($req_turn['scoreJ1'])) ? 0 : intval($req_turn['scoreJ1']),
+                        'scoreJ2' => (is_null($req_turn['scoreJ2'])) ? 0 : intval($req_turn['scoreJ2']),
+                        'scoreJ3' => (is_null($req_turn['scoreJ3'])) ? 0 : intval($req_turn['scoreJ3']),
+                        'scoreJ4' => (!isset($req_turn['scoreJ4'])) ? 0 : intval($req_turn['scoreJ4']),
+                        'scoreJ5' => (!isset($req_turn['scoreJ5'])) ? 0 : intval($req_turn['scoreJ5']),
                     ]
                 );
             }
