@@ -58,7 +58,20 @@ class Game extends Controller
                     $is_owner = FALSE;
                     if ($user_id === $db_users[0]->id) {
                         $is_owner = TRUE;
+                    } else {
+                        // Check if the user is a friend
+                        $db_user_friend = \DB::table('friends')
+                            ->where('user_id_1', '=', $user_id)
+                            ->where('user_id_2', '=', $user_id)
+                            ->first();
+                        if (is_null($db_user_friend) ) {
+                            return [
+                                'status' => 'error',
+                                'error' => 'User '.$user_id.' is not your friend'
+                            ];
+                        }
                     }
+
                     array_push( $game['users'], ['user_id' => $db_users[0]->id, "is_owner" => $is_owner] );
                 } else {
                     // Try to add a guest user based on his username
