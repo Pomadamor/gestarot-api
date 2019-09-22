@@ -25,12 +25,16 @@ class Game extends Controller
 
         if (is_null($id)) {
             // Read users participating to the game
-            $request_users = $request->input('users');
-            if (is_null($request_users) || !is_array($request_users)) {
-                return [
-                    'status' => 'error',
-                    'error' => 'Provided users are unreadable. Please specify a user phone, a user email or a user username.'
-                ];
+            // $request_users = $request->input('users');
+            // if (is_null($request_users) || !is_array($request_users)) {
+            //     return [
+            //         'status' => 'error',
+            //         'error' => 'Provided users are unreadable. Please specify a user phone, a user email or a user username.'
+            //     ];
+            // }
+            foreach ([1,2,3,4,5] as $req_user_position)
+            if (!is_null($request->input('Joueur'.$req_user_position) ) ) {
+                $request_users[] = $request->input('Joueur'.$req_user_position);
             }
             $userCount = count( $request_users );
 
@@ -38,25 +42,30 @@ class Game extends Controller
                 'users' => []
             ];
 
+            $nb_joueurs = $request->input('nb_joueurs');
+
             // TODO: store the position
-            foreach ($request_users as $request_user) {
+            for($i=1; $i<=$nb_joueurs; $i++) {
+
+                $request_user = $request->input('Joueur'.$i);
                 $db_user = \DB::table('users');
                 $db_users = [];
-                if (isset($request_user['email']) && !is_null($request_user['email'])) {
-                    Log::debug('Searching for user with email: '.$request_user['email']);
-                    $db_user->where('email', $request_user['email']);
-                    $db_users = $db_user->get();
-                } elseif( isset($request_user['phone']) && !is_null($request_user['phone'])) {
-                    Log::debug('Searching for user with phone: '.$request_user['phone']);
-                    $db_user->where('phone', $request_user['phone']);
+                if (isset($request_user['id']) && !is_null($request_user['id'])) {
+                    Log::debug('Searching for user with id: '.$request_user['id']);
+                    $db_user->where('id', $request_user['id']);
                     $db_users = $db_user->get();
                 }
+                // elseif( isset($request_user['phone']) && !is_null($request_user['phone'])) {
+                //     Log::debug('Searching for user with phone: '.$request_user['phone']);
+                //     $db_user->where('phone', $request_user['phone']);
+                //     $db_users = $db_user->get();
+                // }
 
                 if (count($db_users) > 0) {
                     Log::debug('Found at least one user corresponding to the email or phone');
                     // Log::debug(print_r($db_users[0], 1));
                     $is_owner = FALSE;
-                    if ($user_id === $db_users[0]->id) {
+                    if ($user_id == $db_users[0]->id) {
                         $is_owner = TRUE;
                     } else {
                         // Check if the user is a friend
@@ -78,13 +87,13 @@ class Game extends Controller
                         }
                     }
 
-                    array_push( $game['users'], ['user_id' => $db_users[0]->id, "is_owner" => $is_owner] );
+                    array_push( $game['users'], ['user_id' => $db_users[0]->id, "username" => $request_user['pseudo'], "is_owner" => $is_owner] );
                 } else {
-                    // Try to add a guest user based on his username
+                    // Try to add a guest user based on his pseudo
                     // TODO: Also store the avatar and color in the relation
-                    if (isset( $request_user['username'] ) ) {
-                        Log::debug('Add a guest user ('.$request_user['username'].')');
-                        array_push( $game['users'], ['username' => $request_user['username'], 'type' => 'guest'] );
+                    if (isset( $request_user['pseudo'] ) ) {
+                        Log::debug('Add a guest user ('.$request_user['pseudo'].')');
+                        array_push( $game['users'], ['username' => $request_user['pseudo'], 'type' => 'guest'] );
                     } else {
                         return [
                             'status' => 'error',
@@ -147,6 +156,30 @@ class Game extends Controller
             ->get();
         // dd( $db_game_players );
 
+        $game_return = [];
+        $game_return['creator_id'] = intval($user_id);
+        
+        for ($i = 1; $i <= count($db_game_players); $i++) {
+        // foreach ($db_game_players as $db_game_user) {
+            $db_game_user = $db_game_players[$i-1];
+            $user_to_add = $db_game_user;
+
+            $user_to_add->id = $i;
+
+            if (intval($db_game_user->user_id)) {
+                $db_user = \DB::table('users')
+                    ->where('id', '=', intval($db_game_user->user_id))
+                    ->first();
+    
+                $user_to_add->avatar = $db_user->avatar;
+                $user_to_add->image = $db_user->image;
+                $user_to_add->color = $db_user->color;
+            }
+
+            $game_return["Joueur$i"] = $user_to_add;
+        }
+        $game_return['nb_joueurs'] = $i-1;
+
         // Create or update turns
         $db_game_turns = \DB::table('games_turns')
             ->where('game_id', '=', intval( $db_game_id ))
@@ -185,14 +218,12 @@ class Game extends Controller
             ->where('game_id', '=', intval( $db_game_id ))
             ->get();
 
+        $game_return['game_id'] = intval($db_game->id);
+        $game_return['turns'] = $db_game_turns;
+
         return [
             'status' => 'ok',
-            'game' => [
-                'gamed_id' => intval($db_game->id),
-                'status' => $db_game->status,
-                'users' => $db_game_players,
-                'turns' => $db_game_turns
-            ]
+            'game' => $game_return
         ];
     }
 
@@ -209,11 +240,11 @@ class Game extends Controller
 
         foreach ($db_games_users as $item) {
             if ($item->type == 'guest') {
-                array_push( $users, ['type' => 'guest', 'username' => $item->username] );
+                array_push( $users, ['type' => 'guest', 'pseudo' => $item->username] );
             } else {
                 $user = \App\User::where('id', $item->user_id)->first();
                 array_push( $users, [
-                    'type' => 'user', 'username' => $item->username, 'user_id' => intval($item->user_id),
+                    'type' => 'user', 'pseudo' => $item->username, 'user_id' => intval($item->user_id),
                     'avatar' => $user->avatar, 'color' => $user->color
                 ]);
             }
