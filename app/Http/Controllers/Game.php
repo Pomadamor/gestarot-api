@@ -293,21 +293,40 @@ class Game extends Controller
             'games' => []
         ];
         foreach ($db_games as $db_game ) {
+            $result_game = [];
             // Load the players from database
             $db_game_players = \DB::table('games_users')
                 ->where('game_id', '=', intval($db_game->id))
                 ->get();
             // dd( $db_game_players );
 
+            for ($i=1; $i <= count( $db_game_players ); $i++) {
+                $db_game_player = $db_game_players[$i-1];
+
+                // dd( is_null( $db_game_player->user_id) );
+                $user_to_add = $db_game_player;
+                if ( intval( $db_game_player->user_id ) ) {
+                    // Load the user from database to get his informations
+                    // TODO: check if its a friend of the logged in user to insert his avatar, image and color
+                    $db_user = \DB::table('users')
+                        ->where('id', '=', intval($db_game_player->user_id))
+                        ->first();
+                    // dd( $db_user );
+                    $user_to_add->email = $db_user->email;
+                    $user_to_add->phone = $db_user->phone;
+                    $user_to_add->avatar = $db_user->avatar;
+                    $user_to_add->image = $db_user->image;
+                    $user_to_add->color = $db_user->color;
+                }
+                $game_return["joueur$i"] = $user_to_add;
+            }
             $db_game_turns = \DB::table('games_turns')
                 ->where('game_id', '=', intval( $db_game->id ))
                 ->get();
 
-            array_push( $return['games'], [
-                'game_id' => $db_game->id,
-                'users' => $db_game_players->all(),
-                'turns' => $db_game_turns->all()
-            ]);
+            $game_return['game_id'] = $db_game->id;
+            $game_return['turns'] = $db_game_turns->all();
+            array_push( $return['games'], $game_return );
         }
         return $return;
     }
