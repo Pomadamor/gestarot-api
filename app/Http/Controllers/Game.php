@@ -32,6 +32,7 @@ class Game extends Controller
             //         'error' => 'Provided users are unreadable. Please specify a user phone, a user email or a user username.'
             //     ];
             // }
+            $request_users = [];
             foreach ([1,2,3,4,5] as $req_user_position)
             if (!is_null($request->input('Joueur'.$req_user_position) ) ) {
                 $request_users[] = $request->input('Joueur'.$req_user_position);
@@ -82,7 +83,7 @@ class Game extends Controller
                         if (count($db_user_friend) != 2 ) {
                             return [
                                 'status' => 'error',
-                                'error' => 'User '.$user_id.' is not your friend'
+                                'error' => 'User '.$db_users[0]->id.' is not your friend'
                             ];
                         }
                     }
@@ -93,7 +94,10 @@ class Game extends Controller
                     // TODO: Also store the avatar and color in the relation
                     if (isset( $request_user['pseudo'] ) ) {
                         Log::debug('Add a guest user ('.$request_user['pseudo'].')');
-                        array_push( $game['users'], ['username' => $request_user['pseudo'], 'type' => 'guest'] );
+                        array_push( $game['users'], [
+                            'username' => $request_user['pseudo'], 'image' => $request_user['image'],
+                            'color' => $request_user['color'], 'type' => 'guest'
+                        ]);
                     } else {
                         return [
                             'status' => 'error',
@@ -115,12 +119,6 @@ class Game extends Controller
                     $game_user
                 );
             }
-
-            // return [
-            //     'status' => 'ok',
-            //     'message' => 'Game created',
-            //     'game_id' => $db_game_id
-            // ];
         } else {
             // Game already exists
             $db_game_id = $id;
@@ -186,7 +184,6 @@ class Game extends Controller
             ->get();
         // dd( $db_game_turns );
         $request_turns = $request->input('turns');
-        // dd( $request_turns );
         
         if (count($db_game_turns) < count($request_turns)) {
             // Insert missing turns
@@ -368,18 +365,25 @@ class Game extends Controller
 
                 // dd( is_null( $db_game_player->user_id) );
                 $user_to_add = $db_game_player;
+                $user_to_add->id = $i;
+
                 if ( intval( $db_game_player->user_id ) ) {
                     // Load the user from database to get his informations
                     // TODO: check if its a friend of the logged in user to insert his avatar, image and color
                     $db_user = \DB::table('users')
                         ->where('id', '=', intval($db_game_player->user_id))
                         ->first();
+
                     // dd( $db_user );
                     $user_to_add->email = $db_user->email;
                     $user_to_add->phone = $db_user->phone;
                     $user_to_add->avatar = $db_user->avatar;
                     $user_to_add->image = $db_user->image;
                     $user_to_add->color = $db_user->color;
+                } else {
+                    // Add image and color coming from relation
+                    $user_to_add->image = $db_game_player->image;
+                    $user_to_add->color = $db_game_player->color;
                 }
                 $game_return["Joueur$i"] = $user_to_add;
                 if ($db_game_player->is_owner) {
