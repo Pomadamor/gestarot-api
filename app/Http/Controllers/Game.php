@@ -230,6 +230,8 @@ class Game extends Controller
     public function get($id) {
         $db_game = \DB::table('games')->where('id', '=', $id)->first();
 
+        $game_return = [];
+
         // Check if the game exists or not
         $users = [];
         $creator_id = NULL;
@@ -238,30 +240,42 @@ class Game extends Controller
             ->where('game_id', '=', $id)
             ->get();
 
-        foreach ($db_games_users as $item) {
-            if ($item->type == 'guest') {
-                array_push( $users, ['type' => 'guest', 'pseudo' => $item->username] );
-            } else {
-                $user = \App\User::where('id', $item->user_id)->first();
-                array_push( $users, [
-                    'type' => 'user', 'pseudo' => $item->username, 'user_id' => intval($item->user_id),
-                    'avatar' => $user->avatar, 'color' => $user->color
-                ]);
+        for ($i=1; $i <= count( $db_games_users ); $i++) {
+            $db_game_player = $db_games_users[$i-1];
+
+            // dd( is_null( $db_game_player->user_id) );
+            $user_to_add = $db_game_player;
+            if ( intval( $db_game_player->user_id ) ) {
+                // Load the user from database to get his informations
+                // TODO: check if its a friend of the logged in user to insert his avatar, image and color
+                $db_user = \DB::table('users')
+                    ->where('id', '=', intval($db_game_player->user_id))
+                    ->first();
+                // dd( $db_user );
+                // $user_to_add->email = $db_user->email;
+                // $user_to_add->phone = $db_user->phone;
+                $user_to_add->avatar = $db_user->avatar;
+                $user_to_add->image = $db_user->image;
+                $user_to_add->color = $db_user->color;
             }
-            if ($item->is_owner) {
-                $creator_id = $item->user_id;
+            $game_return["Joueur$i"] = $user_to_add;
+            if ($db_game_player->is_owner) {
+                $game_return['creator_id'] = intval($db_game_player->user_id);
             }
         }
         $db_game_turns = \DB::table('games_turns')
             ->where('game_id', '=', $id)
             ->get();
 
-        return [
-            'game_id' => intval($id),
-            'users' => $users,
-            'creator_id' => intval($creator_id),
-            'turns' => $db_game_turns->all()
-        ];
+        $game_return['game_id'] = intval($id);
+        // $game_return['creator_id'] = intval($creator_id);
+        $game_return['turns'] = $db_game_turns->all();
+        return $game_return;
+        // return [
+        //     'game_id' => intval($id),
+        //     'creator_id' => intval($creator_id),
+        //     'turns' => $db_game_turns->all()
+        // ];
 
     }
 
@@ -368,6 +382,9 @@ class Game extends Controller
                     $user_to_add->color = $db_user->color;
                 }
                 $game_return["Joueur$i"] = $user_to_add;
+                if ($db_game_player->is_owner) {
+                    $game_return['creator_id'] = intval($db_game_player->user_id);
+                }
             }
             $game_return['nb_joueurs'] = $i-1;
 
