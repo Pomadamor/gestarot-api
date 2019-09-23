@@ -45,8 +45,15 @@ class Game extends Controller
 
             $nb_joueurs = $request->input('nb_joueurs');
 
-            // TODO: store the position
-            for($i=1; $i<=$nb_joueurs; $i++) {
+            // First player is always the logged-in one
+            $db_user = \DB::table('users')
+                ->where('id', '=', intval($user_id))
+                ->first();
+            array_push( $game['users'], [
+                'user_id' => $user_id, "username" => $db_user->username, "is_owner" => TRUE
+            ]);
+
+            for($i=2; $i<=$nb_joueurs; $i++) {
 
                 $request_user = $request->input('Joueur'.$i);
                 $db_user = \DB::table('users');
