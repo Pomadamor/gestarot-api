@@ -367,8 +367,10 @@ class Game extends Controller
                     $user_to_add->image = $db_user->image;
                     $user_to_add->color = $db_user->color;
                 }
-                $game_return["joueur$i"] = $user_to_add;
+                $game_return["Joueur$i"] = $user_to_add;
             }
+            $game_return['nb_joueurs'] = $i-1;
+
             $db_game_turns = \DB::table('games_turns')
                 ->where('game_id', '=', intval( $db_game->id ))
                 ->get();
