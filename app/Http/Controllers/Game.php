@@ -415,4 +415,66 @@ class Game extends Controller
         }
         return $return;
     }
+
+    public function delete($id, Request $request) {
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+
+        // Get the id from the token
+        $user_id = NULL;
+        if (count( $api_token ) >= 0 ) {
+            $user_id = $api_token[0]->user_id;
+        }
+
+        // Search for game owner
+        $db_game_users_owner = \DB::table('games_users')
+            ->where('user_id', '=', $user_id)
+            ->where('game_id', '=', $id)
+            ->first();
+
+        if ( !$db_game_users_owner) {
+            // No entries in games_users: either the user is not the owner or the game does not exists
+            $is_game_exists = \DB::table('games')
+                ->where('id', '=', $id)
+                ->exists();
+
+            if ($is_game_exists) {
+                // Logged-in user is not the owner of the game
+                return [
+                    'status' => 'error',
+                    'error' => 'You are not the owner of the game, you cannot delete the game.'
+                ];
+            } else {
+                return [
+                    'status' => 'error',
+                    'error' => 'The game '.$id.' does not exists in database'
+                ];
+            }
+        }
+        // Logged-in user is the owner of the game
+
+        // Delete the game and dependent tables
+        $db_game_users_deleted = \DB::table('games_users')
+            ->where('game_id', '=', $id)
+            ->delete();
+
+        $db_game_turns_deleted = \DB::table('games_turns')
+            ->where('game_id', '=', $id)
+            ->delete();
+
+        $db_game_deleted = \DB::table('games')
+            ->where('id', '=', $id)
+            ->delete();
+
+        Log::debug('Game users '.$id.' is deleted: '.print_r( $db_game_users_deleted, 1 ));
+        Log::debug('Game turns '.$id.' is deleted: '.print_r( $db_game_turns_deleted, 1 ));
+        Log::debug('Game '.$id.' is deleted: '.print_r( $db_game_deleted, 1 ));
+
+        return [
+            'status' => 'ok',
+            'game_id' => $id,
+            'message' => 'Game '.$id.' deleted.'
+        ];
+    }
 }
