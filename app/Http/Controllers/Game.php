@@ -265,6 +265,7 @@ class Game extends Controller
             $game_return["Joueur$i"] = $user_to_add;
             if ($db_game_player->is_owner) {
                 $game_return['creator_id'] = intval($db_game_player->user_id);
+                $game_return['creator_pseudo'] = $db_game_player->username;
             }
         }
         $game_return['nb_joueurs'] = $i-1;
@@ -300,6 +301,7 @@ class Game extends Controller
 
             $users = [];
             $creator_id = NULL;
+            $creator_pseudo = NULL;
             foreach ($db_games_users as $item) {
                 if ($item->type == 'guest') {
                     array_push( $users, ['type' => 'guest', 'username' => $item->username] );
@@ -312,12 +314,14 @@ class Game extends Controller
                 }
                 if ($item->is_owner) {
                     $creator_id = $item->user_id;
+                    $creator_pseudo = $item->username;
                 }
             }
             $games[] = [
                 'game_id' => intval($game->id),
                 'users' => $users,
-                'creator_id' => intval($creator_id)
+                'creator_id' => intval($creator_id),
+                'creator_pseudo' => $creator_pseudo
             ];
         }
         return [
@@ -331,8 +335,8 @@ class Game extends Controller
         // Load the games he's participating
         // Load the api_token from the database
         $api_token = \DB::table('api_tokens')
-        ->where('value', $request->header('api_token'))
-        ->get();
+            ->where('value', $request->header('api_token'))
+            ->get();
 
         // (Get the logged in user)
         // Get the id from the token
@@ -396,6 +400,7 @@ class Game extends Controller
                 $game_return["Joueur$i"] = $user_to_add;
                 if ($db_game_player->is_owner) {
                     $game_return['creator_id'] = intval($db_game_player->user_id);
+                    $game_return['creator_pseudo'] = $db_game_player->username;
                 }
             }
             $game_return['nb_joueurs'] = $i-1;
