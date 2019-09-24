@@ -171,7 +171,7 @@ class Game extends Controller
             $db_game_user = $db_game_players[$i-1];
             $user_to_add = $db_game_user;
 
-            $user_to_add->id = $i;
+            $user_to_add->id = $db_game_user->user_id;
 
             if (intval($db_game_user->user_id)) {
                 $db_user = \DB::table('users')
@@ -251,6 +251,8 @@ class Game extends Controller
 
             // dd( is_null( $db_game_player->user_id) );
             $user_to_add = $db_game_player;
+            $user_to_add->id = null;
+
             if ( intval( $db_game_player->user_id ) ) {
                 // Load the user from database to get his informations
                 // TODO: check if its a friend of the logged in user to insert his avatar, image and color
@@ -260,6 +262,7 @@ class Game extends Controller
                 // dd( $db_user );
                 // $user_to_add->email = $db_user->email;
                 // $user_to_add->phone = $db_user->phone;
+                $user_to_add->id = $db_user->id;
                 $user_to_add->avatar = $db_user->avatar;
                 $user_to_add->image = $db_user->image;
                 $user_to_add->color = $db_user->color;
@@ -379,7 +382,7 @@ class Game extends Controller
 
                 // dd( is_null( $db_game_player->user_id) );
                 $user_to_add = $db_game_player;
-                $user_to_add->id = $i;
+                $user_to_add->id = null;
 
                 if ( intval( $db_game_player->user_id ) ) {
                     // Load the user from database to get his informations
@@ -389,6 +392,7 @@ class Game extends Controller
                         ->first();
 
                     // dd( $db_user );
+                    $user_to_add->id = $db_user->id;
                     $user_to_add->email = $db_user->email;
                     $user_to_add->phone = $db_user->phone;
                     $user_to_add->avatar = $db_user->avatar;

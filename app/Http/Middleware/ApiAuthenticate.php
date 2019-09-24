@@ -13,7 +13,6 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class ApiAuthenticate
 {
     public function handle($request, Closure $next) {
-        Log::debug('Authenticating request');
         // Check for api_token existence and check in the database for its existence
         $api_token = $request->header('api_token');
 
