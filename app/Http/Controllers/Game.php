@@ -77,17 +77,19 @@ class Game extends Controller
                         $is_owner = TRUE;
                     } else {
                         // Check if the user is a friend
+                        // Only need to be friend of logged-in user, to allow "phantom friends"
                         $db_user_friend = \DB::table('friends')
                             ->where(function ($query) use ($user_id, $db_users) {
                                 $query->where('user_id_1', '=', $user_id)
                                     ->where('user_id_2', '=', $db_users[0]->id);
                             })
-                            ->orWhere(function ($query) use ($user_id, $db_users) {
-                                $query->where('user_id_1', '=', $db_users[0]->id)
-                                    ->where('user_id_2', '=', $user_id);
-                            })
-                            ->get();
-                        if (count($db_user_friend) != 2 ) {
+                            // ->orWhere(function ($query) use ($user_id, $db_users) {
+                            //     $query->where('user_id_1', '=', $db_users[0]->id)
+                            //         ->where('user_id_2', '=', $user_id);
+                            // })
+                            ->exists();
+
+                        if ( !$db_user_friend ) {
                             return [
                                 'status' => 'error',
                                 'error' => 'User '.$db_users[0]->id.' is not your friend'

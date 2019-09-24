@@ -124,8 +124,31 @@ class User extends Controller
         };
 
         // Check for user existence in database
+        $user_id = null;
         $user = \App\User::where('email', $email)->orWhere('phone', $phone)->first();
         if ($user) {
+            // Check if the user is a phantom (added by a friend)
+            if ($user->is_phantom) {
+                Log::debug('User '.$user->$username.' is a phantom, updating');
+                // Update the user
+                DB::table('users')
+                    ->where('id', $user->id)
+                    ->update([
+                        'email' => $email,
+                        'phone' => $phone,
+                        'password' => $password,
+                        'image' => $image,
+                        'avatar' => $avatar,
+                        'color' => $color,
+                        'is_phantom' => FALSE
+                    ]);
+
+                return response()->json(
+                    ['status' => 'ok'],
+                    200
+                );
+            }
+
             return response()
                 ->json([
                     'status' => 'error',
@@ -142,7 +165,6 @@ class User extends Controller
             'color' => $color
         ];
         
-        $user_id = null;
         try {
             $user_id = DB::table('users')->insertGetId(
                 $user_to_insert
@@ -425,32 +447,48 @@ class User extends Controller
         
         $user = $user_request->first();
         
-        if ($user) {
-            // Search if users are already friends
-            
-            $friends = \DB::table('friends')
-                // ->where([
-                //     ['user_id_1', '=', $user->id],
-                //     ['user_id_2', '=', $id],
-                // ])
-                ->where([
-                    ['user_id_1', '=', $id],
-                    ['user_id_2', '=', $user->id],
-                ])->get();
+        if (!$user) {
+            // Create a phantom user
+            $user_to_insert = [
+                'is_phantom' => TRUE
+            ];
+            $user_to_insert['username'] = $request->input('username');
 
-            if (count($friends) == 0) {
-                // If not, insert one relation
-                try {
-                    $friend_id = \DB::table('friends')->insert([
-                        "user_id_1" => $id,
-                        "user_id_2" => $user->id,
-                    ]);
-                } catch (\Illuminate\Database\QuerusernameusernameusernameyException $e) {
-                    return ["status" => "error", "error" => "Unable to add a friend in database (".$e->getMessage().")"];
-                }
+            if ($request->input('email') ) {
+                $user_to_insert['email'] = $request->input('email');
+            } elseif( $request->input('phone') ) {
+                $user_to_insert['phone'] = $request->input('phone');
             }
-        } else {
-            return ["status" => "error", "error" => "Friend not found with provided username and email or phone"];
+    
+            $db_user_phantom_id = \DB::table('users')->insertGetId($user_to_insert);
+            $user = \DB::table('users')
+                ->where('id', '=', $db_user_phantom_id)
+                ->first();
+        }
+        
+        // Search if users are already friends
+        
+        $friends = \DB::table('friends')
+            // ->where([
+            //     ['user_id_1', '=', $user->id],
+            //     ['user_id_2', '=', $id],
+            // ])
+            ->where([
+                ['user_id_1', '=', $id],
+                ['user_id_2', '=', $user->id],
+            ])
+            ->get();
+
+        if (count($friends) == 0) {
+            // If not, insert one relation
+            try {
+                $friend_id = \DB::table('friends')->insert([
+                    "user_id_1" => $id,
+                    "user_id_2" => $user->id,
+                ]);
+            } catch (\Illuminate\Database\QuerusernameusernameusernameyException $e) {
+                return ["status" => "error", "error" => "Unable to add a friend in database (".$e->getMessage().")"];
+            }
         }
 
         return ["status" => "ok", "message" => "Friend added"];
