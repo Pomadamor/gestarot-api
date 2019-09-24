@@ -49,7 +49,8 @@ Route::post('/user/{id}/friends', 'User@addFriend')
 Route::post('/logged_user/friends', 'User@addFriend')
     ->middleware(ApiAuthenticate::class);
 
-Route::delete('/logged_user/friends', 'User@deleteFriend')
+Route::delete('/logged_user/friends/{id}', 'User@deleteFriend')
+    ->where('id', '[0-9]+')
     ->middleware(ApiAuthenticate::class);
 
 # id is optional: if it exists, update the game in place of creating it

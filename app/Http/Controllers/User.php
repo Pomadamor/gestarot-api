@@ -493,4 +493,30 @@ class User extends Controller
 
         return ["status" => "ok", "message" => "Friend added"];
     }
+
+    function deleteFriend($id = null, Request $request) {
+        // Check if the logged in user is the same as the one we want to modify
+        $api_token = \DB::table('api_tokens')
+            ->where('value', $request->header('api_token'))
+            ->get();
+
+        // If no id is specified in the route, guess it from the api_token
+        // Get the id from the token
+        $logged_user_id = null;
+        if (count( $api_token ) >= 0 ) {
+            $logged_user_id = $api_token[0]->user_id;
+        }
+
+        $friend_deleted = \DB::table('friends')
+            ->where([
+                ['user_id_1', '=', $logged_user_id],
+                ['user_id_2', '=', $id]
+            ])
+            ->delete();
+
+        dd( $friend_deleted );
+        if ($friend_deleted) {
+
+        }
+    }
 }
