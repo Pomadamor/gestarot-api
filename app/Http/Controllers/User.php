@@ -514,9 +514,16 @@ class User extends Controller
             ])
             ->delete();
 
-        dd( $friend_deleted );
         if ($friend_deleted) {
-
+            return [
+                'status' => 'ok',
+                'Friend '.$id.' deleted'
+            ];
+        } else {
+            return [
+                'status' => 'error',
+                'error' => 'Error while deleting friend '.$id
+            ];
         }
     }
 }
