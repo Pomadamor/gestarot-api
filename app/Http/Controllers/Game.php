@@ -280,6 +280,19 @@ class Game extends Controller
 
         $game_return['game_id'] = intval($id);
         // $game_return['creator_id'] = intval($creator_id);
+        foreach ($db_game_turns as $db_game_turn) {
+            $db_game_turn->id = intval($db_game_turn->id);
+            $db_game_turn->game_id = intval($db_game_turn->game_id);
+            $db_game_turn->score = intval($db_game_turn->score);
+            $db_game_turn->autre_score = intval($db_game_turn->autre_score);
+            $db_game_turn->nbJoueur = intval($db_game_turn->nbJoueur);
+            $db_game_turn->scoreJ1 = intval($db_game_turn->scoreJ1);
+            $db_game_turn->scoreJ2 = intval($db_game_turn->scoreJ2);
+            $db_game_turn->scoreJ3 = intval($db_game_turn->scoreJ3);
+            $db_game_turn->scoreJ4 = intval($db_game_turn->scoreJ4);
+            $db_game_turn->scoreJ5 = intval($db_game_turn->scoreJ5);
+            $db_game_turn->victoire = intval($db_game_turn->victoire);
+        }
         $game_return['turns'] = $db_game_turns->all();
         return $game_return;
         // return [
