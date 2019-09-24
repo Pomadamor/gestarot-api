@@ -267,6 +267,7 @@ class Game extends Controller
                 $game_return['creator_id'] = intval($db_game_player->user_id);
             }
         }
+        $game_return['nb_joueurs'] = $i-1;
         $db_game_turns = \DB::table('games_turns')
             ->where('game_id', '=', $id)
             ->get();
